@@ -1,153 +1,100 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from django.db.models import Avg
-from .models import Category, Course, Lesson, StudentGrade, UserProfile
-from .forms import StudentSignUpForm
+from django.contrib import messages
+from .models import Course, Category, Lesson
 
-# View de Cadastro
-def register_view(request):
-    if request.user.is_authenticated:
-        return redirect('category_home')
-        
-    if request.method == 'POST':
-        form = StudentSignUpForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
-            
-            # Cria o usuário normal (is_staff=False por padrão -> Aluno)
-            user = User.objects.create_user(
-                username=email,
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name
-            )
-            
-            # Cria o perfil do colaborador
-            UserProfile.objects.get_or_create(user=user, role="Colaborador")
-            
-            login(request, user)
-            return redirect('category_home')
-    else:
-        form = StudentSignUpForm()
-        
-    return render(request, 'courses/register.html', {'form': form})
+# Verificação se o usuário é o Master/CEO
+def is_master(user):
+    return user.is_authenticated and user.is_superuser
 
-
-# View de Login
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('category_home')
+        if request.user.is_superuser:
+            return redirect('admin_dashboard')
+        return redirect('student_dashboard')
 
-    error_message = None
     if request.method == 'POST':
-        email = request.POST.get('username')
+        email = request.POST.get('email')
         password = request.POST.get('password')
         
+        # Como o username é o email
         user = authenticate(request, username=email, password=password)
+        
         if user is not None:
             login(request, user)
-            return redirect('category_home')
+            if user.is_superuser:
+                return redirect('admin_dashboard')
+            return redirect('student_dashboard')
         else:
-            error_message = "E-mail ou senha incorretos. Verifique suas credenciais."
+            messages.error(request, 'E-mail ou senha inválidos.')
 
-    return render(request, 'courses/login.html', {'error_message': error_message})
+    return render(request, 'courses/login.html')
 
-
-# View de Logout
 def logout_view(request):
     logout(request)
     return redirect('login')
 
-
-# Páginas Restritas
 @login_required
-def category_view(request, category_id=None):
-    current_category = None
-    subcategories = []
-    courses = []
-
-    if category_id:
-        current_category = get_object_or_404(Category, id=category_id)
-        subcategories = current_category.subcategories.all()
-        courses = current_category.courses.all()
-    else:
-        subcategories = Category.objects.filter(parent__isnull=True)
-
-    context = {
-        'current_category': current_category,
-        'subcategories': subcategories,
+def student_dashboard(request):
+    courses = Course.objects.all()
+    categories = Category.objects.all()
+    return render(request, 'courses/student_dashboard.html', {
         'courses': courses,
-    }
-    return render(request, 'courses/category_grid.html', context)
+        'categories': categories
+    })
 
+@user_passes_test(is_master)
+def admin_dashboard(request):
+    users = User.objects.all()
+    courses = Course.objects.all()
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        # Ação: Criar novo membro da equipe
+        if action == 'create_user':
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            first_name = request.POST.get('first_name', '')
+            
+            if User.objects.filter(username=email).exists():
+                messages.error(request, 'Usuário com este e-mail já existe.')
+            else:
+                User.objects.create_user(username=email, email=email, password=password, first_name=first_name)
+                messages.success(request, f'Membro {email} cadastrado com sucesso!')
+                return redirect('admin_dashboard')
+
+        # Ação: Excluir membro
+        elif action == 'delete_user':
+            user_id = request.POST.get('user_id')
+            user_to_delete = get_object_or_404(User, id=user_id)
+            if not user_to_delete.is_superuser:
+                user_to_delete.delete()
+                messages.success(request, 'Membro removido com sucesso.')
+            else:
+                messages.error(request, 'Não é possível remover o usuário Master.')
+            return redirect('admin_dashboard')
+
+    return render(request, 'courses/admin_dashboard.html', {
+        'users': users,
+        'courses': courses
+    })
+
+@login_required
+def course_list(request):
+    courses = Course.objects.all()
+    return render(request, 'courses/course_list.html', {'courses': courses})
 
 @login_required
 def course_detail(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
-    return render(request, 'courses/course_detail.html', {'course': course})
-
-
-# PROTEÇÃO: Apenas Usuários is_staff = True entram aqui
-@login_required
-def admin_dashboard(request):
-    if not request.user.is_staff:
-        # Se for aluno comum, redireciona para a página principal de cursos
-        return redirect('category_home')
-
-    total_users = User.objects.count()
-    total_courses = Course.objects.count()
-    total_lessons = Lesson.objects.count()
-    
-    users_data = User.objects.annotate(avg_grade=Avg('grades__grade'))
-
-    context = {
-        'total_users': total_users,
-        'total_courses': total_courses,
-        'total_lessons': total_lessons,
-        'users_data': users_data,
-    }
-    return render(request, 'courses/admin_dashboard.html', context)
-
+    course = get_object_or_404(Course, pk=course_id)
+    lessons = course.lessons.all()
+    return render(request, 'courses/course_detail.html', {'course': course, 'lessons': lessons})
 
 @login_required
-def student_dashboard(request, student_id=None):
-    # Se for informado um id de outro aluno e QUEM ESTÁ ACESSANDO NÃO É ADMIN, bloqueia
-    if student_id and student_id != request.user.id and not request.user.is_staff:
-        return redirect('student_dashboard')
-
-    if student_id:
-        user = get_object_or_404(User, id=student_id)
-    else:
-        user = request.user
-
-    profile, _ = UserProfile.objects.get_or_create(user=user)
-    overall_avg = StudentGrade.objects.filter(user=user).aggregate(Avg('grade'))['grade__avg'] or 0.0
-
-    subject_grades = (
-        StudentGrade.objects.filter(user=user)
-        .values('category__name')
-        .annotate(avg_grade=Avg('grade'))
-    )
-
-    best_subject_query = (
-        StudentGrade.objects.filter(user=user)
-        .values('category__name')
-        .annotate(avg_grade=Avg('grade'))
-        .order_by('-avg_grade')
-        .first()
-    )
-
-    context = {
-        'user_student': user,
-        'profile': profile,
-        'overall_avg': round(overall_avg, 1),
-        'subject_grades': subject_grades,
-        'best_subject': best_subject_query['category__name'] if best_subject_query else "Sem registros",
-    }
-    return render(request, 'courses/student_dashboard.html', context)
+def category_grid(request, category_name):
+    category = get_object_or_404(Category, name=category_name)
+    courses = Course.objects.filter(category=category)
+    return render(request, 'courses/category_grid.html', {'category': category, 'courses': courses})
