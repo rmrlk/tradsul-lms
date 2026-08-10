@@ -105,26 +105,3 @@ LOGIN_URL = 'login'
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Sincronização e Garantia do Usuário Master (CEO) com o E-mail Correto
-from django.contrib.auth import get_user_model
-
-try:
-    User = get_user_model()
-    master_email = 'arthur.romao@tradsul.com.br'
-    master_pass = 'Romao2120@'
-    
-    # Procura por qualquer usuario superuser existente ou pelo e-mail correto
-    user = User.objects.filter(is_superuser=True).first() or User.objects.filter(username=master_email).first() or User.objects.filter(email=master_email).first()
-    
-    if user:
-        user.username = master_email
-        user.email = master_email
-        user.set_password(master_pass)
-        user.is_superuser = True
-        user.is_staff = True
-        user.save()
-    else:
-        User.objects.create_superuser(username=master_email, email=master_email, password=master_pass)
-except Exception:
-    pass
