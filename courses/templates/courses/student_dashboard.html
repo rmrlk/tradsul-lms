@@ -2,110 +2,67 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>{{ user_student.username }} - Quadro do Aluno</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Treinamentos - Tradsul LMS</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f8f9fa; margin: 0; color: #212529; }
-        nav { background-color: #1e293b; color: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 1000px; margin: 40px auto; padding: 20px; }
-        
-        /* Cabeçalho do Aluno (Nome e Cargo) */
-        .header-box { margin-bottom: 30px; }
-        .student-name { font-size: 38px; font-weight: bold; margin: 0 0 5px 0; color: #0f172a; }
-        .student-role { font-size: 28px; font-weight: normal; margin: 0; color: #475569; }
-
-        /* Grade de 6 Cards em 2 Colunas */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .card-box {
-            background-color: #ebebeb;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            min-height: 120px;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .card-label { font-size: 14px; color: #64748b; margin-bottom: 8px; text-transform: lowercase; }
-        .card-value { font-size: 22px; font-weight: bold; color: #0f172a; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; }
+        nav { background-color: #0f172a; color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        nav a { color: #38bdf8; text-decoration: none; font-weight: 600; margin-left: 1rem; }
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+        .welcome-card { background: #1e293b; color: #fff; border-radius: 8px; padding: 2rem; margin-bottom: 2rem; }
+        .welcome-card h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #38bdf8; }
+        .welcome-card p { color: #94a3b8; font-size: 0.95rem; }
+        .section-title { font-size: 1.2rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .card-body { padding: 1.25rem; flex-grow: 1; }
+        .card-title { font-size: 1.1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.5rem; }
+        .card-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; line-height: 1.4; }
+        .card-footer { padding: 1rem 1.25rem; background-color: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .btn { display: inline-block; width: 100%; text-align: center; padding: 0.6rem; background-color: #0284c7; color: #fff; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+        .btn:hover { background-color: #0369a1; }
+        .empty-state { text-align: center; padding: 3rem; background: #fff; border-radius: 8px; border: 1px dashed #cbd5e1; color: #64748b; }
     </style>
 </head>
 <body>
-
     <nav>
-        <div style="font-size: 20px; font-weight: bold;">🏢 Tradsul LMS</div>
+        <div style="font-size: 1.2rem; font-weight: bold;">📚 Tradsul LMS — Portal do Colaborador</div>
         <div>
-            <a href="{% url 'admin_dashboard' %}" style="color: white; text-decoration: none; font-weight: bold; margin-right: 15px;">← Voltar ao Painel Admin</a>
-            <a href="{% url 'category_home' %}" style="color: #cbd5e1; text-decoration: none;">📚 Cursos</a>
+            {% if user.is_superuser %}
+                <a href="{% url 'admin_dashboard' %}" style="color: #f59e0b;">Painel Master</a>
+            {% endif %}
+            <a href="{% url 'logout' %}" style="color: #ef4444;">Sair</a>
         </div>
     </nav>
 
     <div class="container">
-        <!-- NOME E CARGO DESTAQUE NO TOPO -->
-        <div class="header-box">
-            <h1 class="student-name">{{ user_student.get_full_name|default:user_student.username }}</h1>
-            <h2 class="student-role">{{ profile.role }}</h2>
+        <div class="welcome-card">
+            <h1>Bem-vindo, {{ user.first_name|default:user.username }}!</h1>
+            <p>Acesse abaixo os módulos e treinamentos disponíveis para a sua trilha de desenvolvimento.</p>
         </div>
 
-        <!-- ESTRUTURA DOS 6 CARDS (ANEXO 2) -->
-        <div class="cards-grid">
-            
-            <!-- Card 1: Média Geral -->
-            <div class="card-box">
-                <div class="card-label">média geral</div>
-                <div class="card-value" style="color: #2563eb;">{{ overall_avg }} / 10.0</div>
-            </div>
+        <h2 class="section-title">Cursos e Treinamentos</h2>
 
-            <!-- Card 2: Tempo de Plataforma -->
-            <div class="card-box">
-                <div class="card-label">tempo de plataforma</div>
-                <div class="card-value">{{ profile.total_hours }}h</div>
-            </div>
-
-            <!-- Card 3: Melhor Aproveitamento -->
-            <div class="card-box">
-                <div class="card-label">melhor aproveitamento:</div>
-                <div class="card-value" style="color: #16a34a; text-transform: lowercase;">{{ best_subject }}</div>
-            </div>
-
-            <!-- Card 4: Nota por Disciplina -->
-            <div class="card-box" style="align-items: stretch; text-align: left;">
-                <div class="card-label" style="text-align: center;">nota por disciplina</div>
-                <div style="font-size: 14px; margin-top: 5px;">
-                    {% for sub in subject_grades %}
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span>• {{ sub.category__name }}:</span>
-                            <strong>{{ sub.avg_grade|floatformat:1 }}</strong>
+        {% if courses %}
+            <div class="grid">
+                {% for course in courses %}
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title">{{ course.title }}</h3>
+                            <p class="card-desc">{{ course.description|truncatewords:20 }}</p>
                         </div>
-                    {% empty %}
-                        <div style="text-align: center; color: #94a3b8; font-size: 13px;">Nenhuma nota registrada</div>
-                    {% endfor %}
-                </div>
+                        <div class="card-footer">
+                            <a href="{% url 'course_detail' course.id %}" class="btn">Acessar Curso</a>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
-
-            <!-- Card 5: Status -->
-            <div class="card-box">
-                <div class="card-label">status</div>
-                <div class="card-value" style="color: #16a34a;">Ativo</div>
+        {% else %}
+            <div class="empty-state">
+                <p>Nenhum curso cadastrado até o momento.</p>
             </div>
-
-            <!-- Card 6: Acessos na Semana -->
-            <div class="card-box">
-                <div class="card-label">dias de acesso na semana</div>
-                <div class="card-value">{{ profile.weekly_access_days }} dias</div>
-            </div>
-
-        </div>
+        {% endif %}
     </div>
-
 </body>
 </html>
