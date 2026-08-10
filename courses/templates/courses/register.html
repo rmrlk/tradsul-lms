@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro - Tradsul LMS</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px 0; }
+        .register-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 440px; }
+        .title { font-size: 24px; font-weight: bold; color: #1e293b; margin-bottom: 20px; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; color: #475569; font-size: 14px; }
+        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .btn-submit { width: 100%; padding: 12px; background-color: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn-submit:hover { background-color: #15803d; }
+        .error-text { color: #dc2626; font-size: 12px; margin-top: 4px; }
+        .footer-link { text-align: center; margin-top: 20px; font-size: 14px; color: #64748b; }
+        .footer-link a { color: #2563eb; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="register-card">
+        <div class="title">🏢 Tradsul LMS</div>
+        <h2 style="font-size: 18px; text-align: center; color: #64748b; margin-top: -10px; margin-bottom: 25px;">Cadastro de Colaborador</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Nome</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<div class="error-text">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Sobrenome</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<div class="error-text">{{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>E-mail Corporativo (@tradsul.com.br)</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="error-text">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Criar Senha</label>
+                {{ form.password }}
+                {% if form.password.errors %}<div class="error-text">{{ form.password.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Confirmar Senha</label>
+                {{ form.confirm_password }}
+                {% if form.confirm_password.errors %}<div class="error-text">{{ form.confirm_password.errors.0 }}</div>{% endif %}
+            </div>
+
+            <button type="submit" class="btn-submit">Criar Conta Corporativa</button>
+        </form>
+
+        <div class="footer-link">
+            Já possui conta? <a href="{% url 'login' %}">Fazer Login</a>
+        </div>
+    </div>
+
+</body>
+</html>

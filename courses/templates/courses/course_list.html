@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Plataforma LMS - Tradsul</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; color: #212529;">
+
+    <!-- BARRA DE NAVEGAÇÃO SUPERIOR (NAVBAR) -->
+    <nav style="background-color: #1e293b; color: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 20px; font-weight: bold;">
+            🏢 Tradsul LMS
+        </div>
+        
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <a href="http://127.0.0.1:8000/" style="color: white; text-decoration: none; font-weight: bold;">📚 Cursos</a>
+            
+            <!-- Visão / Links do Aluno -->
+            <a href="#" style="color: #cbd5e1; text-decoration: none;" onclick="alert('Painel do Aluno: Exibirá horas assistidas, notas e progresso individual.')">📊 Meu Desempenho (Aluno)</a>
+            
+            <!-- Visão / Links do Administrador -->
+            <div style="border-left: 1px solid #475569; padding-left: 15px; display: flex; gap: 15px;">
+                <a href="#" style="color: #60a5fa; text-decoration: none; font-weight: bold;" onclick="alert('Painel Geral Admin: Exibirá métricas corporativas, taxa de conclusão, média de notas e horas acumuladas.')">📈 Painel Geral (Admin)</a>
+                <a href="http://127.0.0.1:8000/admin/" target="_blank" style="background-color: #2563eb; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 14px;">⚙️ Gerenciar Conteúdos</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div style="padding: 40px;">
+        <h1>Plataforma de Treinamento Corporativo</h1>
+        <p>Navegue pelas áreas para acessar os conteúdos pedagogicos.</p>
+
+        <hr style="margin-bottom: 30px; border: 0; border-top: 1px solid #dee2e6;">
+
+        {% for category in main_categories %}
+            <div style="background: white; border-left: 5px solid #0d6efd; padding: 20px; margin-bottom: 25px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <h2 style="margin-top: 0; color: #0d6efd;">ÁREA: {{ category.name }}</h2>
+
+                {% if category.courses.all %}
+                    <h4 style="margin-bottom: 10px;">Cursos Diretos:</h4>
+                    <ul>
+                        {% for course in category.courses.all %}
+                            <li>
+                                <a href="{% url 'course_detail' course.id %}" style="font-weight: bold; font-size: 16px;">{{ course.title }}</a>
+                                <p style="margin: 3px 0 10px 0; color: #6c757d;">{{ course.description }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {% for subcategory in category.subcategories.all %}
+                    <div style="background: #e9ecef; padding: 15px; border-radius: 5px; margin-top: 15px;">
+                        <h3 style="margin-top: 0; color: #495057;">📁 Subpasta: {{ subcategory.name }}</h3>
+
+                        {% if subcategory.courses.all %}
+                            <ul>
+                                {% for course in subcategory.courses.all %}
+                                    <li>
+                                        <a href="{% url 'course_detail' course.id %}" style="font-weight: bold; font-size: 16px;">{{ course.title }}</a>
+                                        <p style="margin: 3px 0 10px 0; color: #495057;">{{ course.description }}</p>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p style="font-style: italic; color: #6c757d;">Nenhum curso cadastrado nesta subpasta ainda.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% empty %}
+            <p>Nenhuma área cadastrada ainda no Painel Administrativo.</p>
+        {% endfor %}
+
+        <!-- Cursos sem Categoria/Área definida -->
+        {% if uncategorized_courses %}
+            <div style="background: #fff3cd; border-left: 5px solid #ffc107; padding: 20px; border-radius: 6px; margin-top: 30px;">
+                <h2 style="margin-top: 0; color: #856404;">Cursos sem Área Definida</h2>
+                <ul>
+                    {% for course in uncategorized_courses %}
+                        <li>
+                            <a href="{% url 'course_detail' course.id %}"><strong>{{ course.title }}</strong></a>
+                            <p>{{ course.description }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

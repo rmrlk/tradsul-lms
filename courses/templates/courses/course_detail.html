@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ course.title }} - Plataforma LMS</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f8f9fa; margin: 0; color: #212529; }
+        nav { background-color: #1e293b; color: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 1000px; margin: 30px auto; padding: 20px; }
+        .btn-back { display: inline-block; padding: 8px 16px; background-color: #e2e8f0; color: #1e293b; text-decoration: none; border-radius: 6px; font-weight: bold; margin-bottom: 20px; }
+        
+        /* Blocos das 3 Etapas */
+        .section-box { background: white; padding: 25px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #dee2e6; }
+        .section-title { font-size: 20px; color: #2563eb; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 0; }
+        
+        /* Botões */
+        .btn-pdf { display: inline-block; background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px; }
+        .btn-forms { display: inline-block; background-color: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .btn-forms:hover { background-color: #15803d; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div style="font-size: 20px; font-weight: bold;">🏢 Tradsul LMS</div>
+        <div><a href="{% url 'category_home' %}" style="color: white; text-decoration: none; font-weight: bold;">📚 Cursos</a></div>
+    </nav>
+
+    <div class="container">
+        {% if course.category %}
+            <a href="{% url 'category_detail' course.category.id %}" class="btn-back">← Voltar para {{ course.category.name }}</a>
+        {% else %}
+            <a href="{% url 'category_home' %}" class="btn-back">← Voltar para Áreas Principais</a>
+        {% endif %}
+
+        <h1>{{ course.title }}</h1>
+        <p style="color: #6c757d; font-size: 18px;">{{ course.description }}</p>
+
+        {% for lesson in course.lessons.all %}
+            <div style="margin-top: 40px; border-top: 3px solid #2563eb; padding-top: 20px;">
+                <h2>{{ lesson.title }}</h2>
+
+                <!-- 1. MÓDULO DE ESTUDO EM PDF -->
+                <div class="section-box">
+                    <h3 class="section-title">📄 1. Módulo de Estudo (Material em PDF)</h3>
+                    {% if lesson.pdf_file %}
+                        <p>Baixe ou visualize o material teórico completo em PDF para acompanhamento da aula:</p>
+                        <a href="{{ lesson.pdf_file.url }}" target="_blank" class="btn-pdf">📥 Abrir Arquivo PDF</a>
+                    {% else %}
+                        <p style="color: #6c757d; font-style: italic;">Nenhum arquivo PDF anexado a esta aula ainda.</p>
+                    {% endif %}
+                </div>
+
+                <!-- 2. VIDEOAULA -->
+                <div class="section-box">
+                    <h3 class="section-title">🎬 2. Videoaula do Módulo</h3>
+                    
+                    {% if lesson.video_file %}
+                        <video width="100%" height="450" controls style="border-radius: 6px; background: black;">
+                            <source src="{{ lesson.video_file.url }}" type="video/mp4">
+                        </video>
+                    {% elif lesson.youtube_embed_url %}
+                        <iframe width="100%" height="450" src="{{ lesson.youtube_embed_url }}" frameborder="0" allowfullscreen style="border-radius: 6px;"></iframe>
+                    {% else %}
+                        <p style="color: #6c757d; font-style: italic;">Nenhum vídeo carregado para esta aula ainda.</p>
+                    {% endif %}
+
+                    {% if lesson.content %}
+                        <p style="margin-top: 15px; color: #475569;">{{ lesson.content }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- 3. ATIVIDADE / SIMULADO (GOOGLE FORMS) -->
+                <div class="section-box">
+                    <h3 class="section-title">📝 3. Atividade de Fixação (Simulado)</h3>
+                    
+                    {% if lesson.forms_url %}
+                        <p>Clique no botão abaixo para responder ao simulado e registrar sua nota de avaliação:</p>
+                        <a href="{{ lesson.forms_url }}" target="_blank" class="btn-forms">📋 Acessar Simulado no Google Forms ↗</a>
+                    {% else %}
+                        <p style="color: #6c757d; font-style: italic;">Nenhum link de formulário configurado para esta aula ainda.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+        {% empty %}
+            <p>Nenhuma aula criada neste curso ainda.</p>
+        {% endfor %}
+    </div>
+
+</body>
+</html>
