@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -16,13 +16,13 @@ def login_view(request):
         return redirect('student_dashboard')
 
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
-        # Autenticação utilizando o e-mail corporativo como username
-        user = authenticate(request, username=email, password=password)
-        
-        if user is not None:
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+
+        # Busca o usuário pelo e-mail (case-insensitive) ou username
+        user = User.objects.filter(email__iexact=email).first() or User.objects.filter(username__iexact=email).first()
+
+        if user is not None and user.check_password(password):
             login(request, user)
             if user.is_superuser:
                 return redirect('admin_dashboard')
@@ -55,11 +55,11 @@ def admin_dashboard(request):
         
         # Ação: Criar novo membro da equipe
         if action == 'create_user':
-            email = request.POST.get('email')
-            password = request.POST.get('password')
-            first_name = request.POST.get('first_name', '')
+            email = request.POST.get('email', '').strip()
+            password = request.POST.get('password', '').strip()
+            first_name = request.POST.get('first_name', '').strip()
             
-            if User.objects.filter(username=email).exists():
+            if User.objects.filter(email__iexact=email).exists() or User.objects.filter(username__iexact=email).exists():
                 messages.error(request, 'Usuário com este e-mail já existe.')
             else:
                 User.objects.create_user(username=email, email=email, password=password, first_name=first_name)
