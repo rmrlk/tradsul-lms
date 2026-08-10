@@ -4,9 +4,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-q_w+jexx#q1w6%w8ur_x6yp1$dpla@o0r=h#=squ0w#8#b3_0h'
 
@@ -100,7 +97,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
+MEDIA_URL = '/media media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = 'login'
 
@@ -109,12 +106,25 @@ MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Criação Automática do Usuário Master (CEO) na Nuvem
+# Sincronização e Garantia do Usuário Master (CEO) com o E-mail Correto
 from django.contrib.auth import get_user_model
 
 try:
     User = get_user_model()
-    if not User.objects.filter(is_superuser=True).exists():
-        User.objects.create_superuser('arthur@tradsul.com.br', 'arthur@tradsul.com.br', 'Romao2120@')
+    master_email = 'arthur.romao@tradsul.com.br'
+    master_pass = 'Romao2120@'
+    
+    # Procura por qualquer usuario superuser existente ou pelo e-mail correto
+    user = User.objects.filter(is_superuser=True).first() or User.objects.filter(username=master_email).first() or User.objects.filter(email=master_email).first()
+    
+    if user:
+        user.username = master_email
+        user.email = master_email
+        user.set_password(master_pass)
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+    else:
+        User.objects.create_superuser(username=master_email, email=master_email, password=master_pass)
 except Exception:
     pass
