@@ -2,153 +2,42 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Plataforma LMS - Tradsul</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categoria {{ category.name }} - Tradsul LMS</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-            color: #212529;
-        }
-
-        nav {
-            background-color: #1e293b;
-            color: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .container {
-            padding: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .breadcrumb-nav {
-            margin-bottom: 25px;
-        }
-        .btn-back {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #e2e8f0;
-            color: #1e293b;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-        }
-        .btn-back:hover {
-            background-color: #cbd5e1;
-        }
-
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
-        .card-item {
-            background-color: #e9ecef;
-            border: 1px solid #ced4da;
-            border-radius: 8px;
-            height: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
-            text-decoration: none;
-            color: #212529;
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
-        }
-
-        .card-item:hover {
-            transform: translateY(-4px);
-            background-color: #dee2e6;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-            border-color: #adb5bd;
-        }
-
-        .card-course {
-            background-color: #ffffff;
-            border-left: 5px solid #2563eb;
-        }
-        .card-course:hover {
-            background-color: #f1f5f9;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; }
+        nav { background-color: #0f172a; color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        nav a { color: #38bdf8; text-decoration: none; font-weight: 600; margin-left: 1rem; }
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .card { background: #fff; border-radius: 8px; padding: 1.25rem; border: 1px solid #e2e8f0; }
+        .card-title { font-size: 1.1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.5rem; }
+        .btn { display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem; background-color: #0284c7; color: #fff; border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
     </style>
 </head>
 <body>
-
-    <!-- BARRA DE NAVEGAÇÃO SUPERIOR -->
     <nav>
-        <div style="font-size: 20px; font-weight: bold;">
-            🏢 Tradsul LMS
-        </div>
-        <div style="display: flex; gap: 20px; align-items: center;">
-            <a href="{% url 'category_home' %}" style="color: white; text-decoration: none; font-weight: bold;">📚 Cursos</a>
-            <a href="{% url 'student_dashboard' %}" style="color: #cbd5e1; text-decoration: none; font-weight: bold;">📊 Meu Desempenho ({{ user.first_name|default:user.username }})</a>
-            <div style="border-left: 1px solid #475569; padding-left: 15px; display: flex; gap: 15px; align-items: center;">
-                {% if user.is_staff %}
-                    <a href="{% url 'admin_dashboard' %}" style="color: #60a5fa; text-decoration: none; font-weight: bold;">📈 Painel Geral (Admin)</a>
-                    <a href="/admin/" target="_blank" style="background-color: #2563eb; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 14px;">⚙️ Gerenciar Conteúdos</a>
-                {% endif %}
-                <a href="{% url 'logout' %}" style="color: #f87171; text-decoration: none; font-weight: bold; margin-left: 10px;">Sair ➔</a>
-            </div>
+        <div style="font-size: 1.2rem; font-weight: bold;">📚 Tradsul LMS</div>
+        <div>
+            <a href="{% url 'student_dashboard' %}">Voltar para Cursos</a>
+            <a href="{% url 'logout' %}" style="color: #ef4444;">Sair</a>
         </div>
     </nav>
 
-    <!-- CONTAINER PRINCIPAL DA PÁGINA -->
     <div class="container">
-
-        {% if current_category %}
-            <div class="breadcrumb-nav">
-                {% if current_category.parent %}
-                    <a href="{% url 'category_detail' current_category.parent.id %}" class="btn-back">← Voltar para {{ current_category.parent.name }}</a>
-                {% else %}
-                    <a href="{% url 'category_home' %}" class="btn-back">← Voltar para Áreas Principais</a>
-                {% endif %}
-            </div>
-            <h1 style="font-size: 32px; text-transform: uppercase; margin-bottom: 5px;">{{ current_category.name }}</h1>
-            <p style="color: #6c757d;">Selecione uma subpasta ou curso abaixo:</p>
-        {% else %}
-            <h1 style="font-size: 32px; margin-bottom: 5px;">Plataforma de Treinamento Corporativo</h1>
-            <p style="color: #6c757d;">Navegue pelas áreas para acessar os conteúdos pedagógicos.</p>
-        {% endif %}
-
-        <hr style="border: 0; border-top: 1px solid #dee2e6; margin: 20px 0 30px 0;">
-
-        <!-- GRADE DE CARDS (SUBPASTAS E CURSOS) -->
-        <div class="grid-container">
-            
-            {% for subcat in subcategories %}
-                <a href="{% url 'category_detail' subcat.id %}" class="card-item">
-                    {{ subcat.name }}
-                </a>
-            {% endfor %}
-
+        <h1 style="margin-bottom: 1.5rem; color: #0f172a;">Categoria: {{ category.name }}</h1>
+        <div class="grid">
             {% for course in courses %}
-                <a href="{% url 'course_detail' course.id %}" class="card-item card-course">
-                    📖 {{ course.title }}
-                </a>
+                <div class="card">
+                    <h3 class="card-title">{{ course.title }}</h3>
+                    <p style="color: #64748b; font-size: 0.85rem;">{{ course.description }}</p>
+                    <a href="{% url 'course_detail' course.id %}" class="btn">Ver Treinamento</a>
+                </div>
+            {% empty %}
+                <p>Nenhum curso nesta categoria.</p>
             {% endfor %}
-
         </div>
-
-        {% if not subcategories and not courses %}
-            <div style="background: #fff3cd; padding: 20px; border-radius: 6px; color: #856404; margin-top: 20px;">
-                Nenhum conteúdo ou subpasta cadastrada aqui ainda. Use o painel <strong>Gerenciar Conteúdos</strong> para adicionar.
-            </div>
-        {% endif %}
-
     </div>
-
 </body>
 </html>
